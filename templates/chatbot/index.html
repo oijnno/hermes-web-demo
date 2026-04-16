@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能问答客服系统 - Hermes Agent</title>
+    <link rel="stylesheet" href="/static/css/chatbot.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-robot"></i> Hermes Chatbot</h1>
+                <p class="subtitle">多模型智能问答客服系统</p>
+            </div>
+            
+            <div class="model-selector">
+                <h3><i class="fas fa-brain"></i> 选择模型</h3>
+                <div class="model-list">
+                    {% for model in models %}
+                    <div class="model-item {% if model.available %}available{% else %}unavailable{% endif %}" 
+                         data-model="{{ model.id }}" 
+                         onclick="selectModel('{{ model.id }}')">
+                        <div class="model-icon">
+                            {% if model.id == 'deepseek' %}
+                            <i class="fas fa-code"></i>
+                            {% elif model.id == 'minimax' %}
+                            <i class="fas fa-chess-knight"></i>
+                            {% elif model.id == 'qwen' %}
+                            <i class="fas fa-cloud"></i>
+                            {% endif %}
+                        </div>
+                        <div class="model-info">
+                            <div class="model-name">{{ model.name }}</div>
+                            <div class="model-status">
+                                {% if model.available %}
+                                <span class="status-available"><i class="fas fa-check-circle"></i> 可用</span>
+                                {% else %}
+                                <span class="status-unavailable"><i class="fas fa-times-circle"></i> 需配置API密钥</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <h3><i class="fas fa-user"></i> 用户信息</h3>
+                <div class="info-item">
+                    <span class="info-label">用户ID:</span>
+                    <span class="info-value" id="user-id">{{ user_id }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">会话数:</span>
+                    <span class="info-value" id="message-count">{{ history|length // 2 }}</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-actions">
+                <button class="btn btn-secondary" onclick="clearHistory()">
+                    <i class="fas fa-trash"></i> 清空历史
+                </button>
+                <button class="btn btn-secondary" onclick="copySessionId()">
+                    <i class="fas fa-copy"></i> 复制会话ID
+                </button>
+            </div>
+            
+            <div class="system-info">
+                <p><i class="fas fa-info-circle"></i> 系统提示: 选择左侧模型开始对话</p>
+            </div>
+        </div>
+        
+        <!-- 主聊天区域 -->
+        <div class="main-content">
+            <!-- 聊天头部 -->
+            <div class="chat-header">
+                <div class="header-left">
+                    <h2 id="current-model">请选择模型开始对话</h2>
+                    <p id="model-description">选择左侧的AI模型进行智能问答</p>
+                </div>
+                <div class="header-right">
+                    <div class="status-indicator" id="status-indicator">
+                        <div class="status-dot"></div>
+                        <span>准备就绪</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聊天消息区域 -->
+            <div class="chat-messages" id="chat-messages">
+                {% if history %}
+                    {% for message in history %}
+                        {% if message.role == 'user' %}
+                        <div class="message user-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-text">{{ message.content }}</div>
+                                <div class="message-time">{{ message.timestamp|datetime_format }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="message assistant-message">
+                            <div class="message-avatar">
+                                {% if message.model == 'deepseek' %}
+                                <i class="fas fa-code"></i>
+                                {% elif message.model == 'minimax' %}
+                                <i class="fas fa-chess-knight"></i>
+                                {% elif message.model == 'qwen' %}
+                                <i class="fas fa-cloud"></i>
+                                {% else %}
+                                <i class="fas fa-robot"></i>
+                                {% endif %}
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="model-badge">{{ message.model|upper }}</span>
+                                </div>
+                                <div class="message-text">{{ message.content }}</div>
+                                <div class="message-time">{{ message.timestamp|datetime_format }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>欢迎使用智能问答客服系统</h3>
+                    <p>选择左侧的AI模型开始对话。每个模型都有其独特的优势和特点：</p>
+                    <div class="model-features">
+                        <div class="feature">
+                            <i class="fas fa-code"></i>
+                            <h4>DeepSeek</h4>
+                            <p>擅长代码编程和技术问题</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-chess-knight"></i>
+                            <h4>MiniMax</h4>
+                            <p>创意写作和对话生成</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-cloud"></i>
+                            <h4>Qwen</h4>
+                            <p>中文理解和多轮对话</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea id="message-input" placeholder="输入您的问题... (按Shift+Enter换行，按Enter发送)" 
+                              rows="1" onkeydown="handleKeyDown(event)"></textarea>
+                    <div class="input-actions">
+                        <button class="btn btn-send" onclick="sendMessage()" id="send-button">
+                            <i class="fas fa-paper-plane"></i> 发送
+                        </button>
+                        <button class="btn btn-icon" onclick="clearInput()" title="清空输入">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <div class="shortcuts">
+                        <span><i class="fas fa-keyboard"></i> 快捷键: Enter发送, Shift+Enter换行</span>
+                    </div>
+                    <div class="character-count">
+                        <span id="char-count">0</span>/2000
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>AI正在思考中...</p>
+        </div>
+    </div>
+    
+    <script src="/static/js/chatbot.js"></script>
+    <script>
+        // 初始化变量
+        let currentModel = null;
+        let userId = "{{ user_id }}";
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 监听输入框变化
+            const input = document.getElementById('message-input');
+            input.addEventListener('input', function() {
+                document.getElementById('char-count').textContent = this.value.length;
+            });
+            
+            // 自动滚动到底部
+            scrollToBottom();
+            
+            // 检查模型可用性
+            checkModels();
+        });
+        
+        // 检查模型状态
+        async function checkModels() {
+            try {
+                const response = await fetch('/api/models');
+                const data = await response.json();
+                
+                if (data.success) {
+                    data.models.forEach(model => {
+                        const element = document.querySelector(`.model-item[data-model="${model.id}"]`);
+                        if (element) {
+                            if (model.available) {
+                                element.classList.add('available');
+                                element.classList.remove('unavailable');
+                            } else {
+                                element.classList.add('unavailable');
+                                element.classList.remove('available');
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('检查模型状态失败:', error);
+            }
+        }
+        
+        // 日期时间格式化过滤器
+        function datetimeFormat(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // 注册过滤器
+        window.datetime_format = datetimeFormat;
+    </script>
+</body>
+</html>

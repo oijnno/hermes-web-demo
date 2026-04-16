@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 多模型 AI 客服系统</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-robot"></i> 多模型 AI 客服系统</h1>
+                <p class="subtitle">同时体验 DeepSeek、MiniMax、千问三个 AI 模型的对话能力</p>
+            </div>
+            <div class="header-actions">
+                <button id="new-chat-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> 新对话
+                </button>
+                <button id="config-btn" class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> 设置
+                </button>
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">连接中...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 模型信息栏 -->
+        <div class="model-info-bar">
+            <div class="model-card deepseek">
+                <div class="model-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="model-details">
+                    <h3>DeepSeek</h3>
+                    <p class="model-status" id="deepseek-status">等待连接...</p>
+                </div>
+            </div>
+            
+            <div class="model-card minimax">
+                <div class="model-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <div class="model-details">
+                    <h3>MiniMax</h3>
+                    <p class="model-status" id="minimax-status">等待连接...</p>
+                </div>
+            </div>
+            
+            <div class="model-card qwen">
+                <div class="model-icon">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <div class="model-details">
+                    <h3>千问</h3>
+                    <p class="model-status" id="qwen-status">等待连接...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 左侧：对话输入区 -->
+            <div class="input-section">
+                <div class="input-container">
+                    <div class="input-header">
+                        <h3><i class="fas fa-comment-dots"></i> 输入你的问题</h3>
+                        <div class="input-tools">
+                            <button id="clear-btn" class="btn btn-small btn-outline">
+                                <i class="fas fa-trash"></i> 清空
+                            </button>
+                            <button id="example-btn" class="btn btn-small btn-outline">
+                                <i class="fas fa-lightbulb"></i> 示例
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <textarea 
+                            id="message-input" 
+                            placeholder="请输入你的问题...（例如：请介绍一下人工智能的发展历史）"
+                            rows="4"
+                        ></textarea>
+                        <div class="textarea-footer">
+                            <div class="char-count">
+                                <span id="char-count">0</span>/2000
+                            </div>
+                            <button id="send-btn" class="btn btn-primary btn-send">
+                                <i class="fas fa-paper-plane"></i> 发送
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <p class="quick-actions-title">快速提问：</p>
+                        <div class="quick-buttons">
+                            <button class="quick-btn" data-question="请用中文介绍一下你自己">
+                                <i class="fas fa-user"></i> 自我介绍
+                            </button>
+                            <button class="quick-btn" data-question="写一首关于春天的诗">
+                                <i class="fas fa-pen"></i> 写诗
+                            </button>
+                            <button class="quick-btn" data-question="解释一下什么是机器学习">
+                                <i class="fas fa-graduation-cap"></i> 解释概念
+                            </button>
+                            <button class="quick-btn" data-question="帮我写一个Python函数计算斐波那契数列">
+                                <i class="fas fa-code"></i> 写代码
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-panel">
+                    <h4><i class="fas fa-info-circle"></i> 使用说明</h4>
+                    <ul>
+                        <li>系统会同时向三个 AI 模型发送你的问题</li>
+                        <li>每个模型的回答会显示在对应的窗口中</li>
+                        <li>可以比较不同模型的回答风格和内容</li>
+                        <li>点击"新对话"可以开始新的会话</li>
+                        <li>会话历史会自动保存</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 右侧：模型响应区 -->
+            <div class="response-section">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="all">
+                        <i class="fas fa-layer-group"></i> 全部视图
+                    </button>
+                    <button class="tab-btn" data-tab="deepseek">
+                        <i class="fas fa-brain"></i> DeepSeek
+                    </button>
+                    <button class="tab-btn" data-tab="minimax">
+                        <i class="fas fa-microchip"></i> MiniMax
+                    </button>
+                    <button class="tab-btn" data-tab="qwen">
+                        <i class="fas fa-cloud"></i> 千问
+                    </button>
+                </div>
+                
+                <div class="response-container">
+                    <!-- 全部视图 -->
+                    <div class="tab-content active" id="tab-all">
+                        <div class="comparison-view">
+                            <div class="model-column deepseek-column">
+                                <div class="column-header">
+                                    <h4><i class="fas fa-brain"></i> DeepSeek</h4>
+                                    <div class="column-stats">
+                                        <span class="stat" id="deepseek-response-count">0 回答</span>
+                                        <span class="stat" id="deepseek-response-time">-</span>
+                                    </div>
+                                </div>
+                                <div class="messages-container" id="deepseek-messages"></div>
+                            </div>
+                            
+                            <div class="model-column minimax-column">
+                                <div class="column-header">
+                                    <h4><i class="fas fa-microchip"></i> MiniMax</h4>
+                                    <div class="column-stats">
+                                        <span class="stat" id="minimax-response-count">0 回答</span>
+                                        <span class="stat" id="minimax-response-time">-</span>
+                                    </div>
+                                </div>
+                                <div class="messages-container" id="minimax-messages"></div>
+                            </div>
+                            
+                            <div class="model-column qwen-column">
+                                <div class="column-header">
+                                    <h4><i class="fas fa-cloud"></i> 千问</h4>
+                                    <div class="column-stats">
+                                        <span class="stat" id="qwen-response-count">0 回答</span>
+                                        <span class="stat" id="qwen-response-time">-</span>
+                                    </div>
+                                </div>
+                                <div class="messages-container" id="qwen-messages"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 单个模型视图 -->
+                    <div class="tab-content" id="tab-deepseek">
+                        <div class="single-model-view">
+                            <div class="model-header deepseek">
+                                <h3><i class="fas fa-brain"></i> DeepSeek 对话</h3>
+                                <p class="model-description">深度求索公司开发的大型语言模型</p>
+                            </div>
+                            <div class="messages-container single" id="deepseek-single-messages"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-minimax">
+                        <div class="single-model-view">
+                            <div class="model-header minimax">
+                                <h3><i class="fas fa-microchip"></i> MiniMax 对话</h3>
+                                <p class="model-description">MiniMax 公司开发的中文大语言模型</p>
+                            </div>
+                            <div class="messages-container single" id="minimax-single-messages"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-qwen">
+                        <div class="single-model-view">
+                            <div class="model-header qwen">
+                                <h3><i class="fas fa-cloud"></i> 千问对话</h3>
+                                <p class="model-description">阿里巴巴通义千问大语言模型</p>
+                            </div>
+                            <div class="messages-container single" id="qwen-single-messages"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部状态栏 -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="session-info">
+                    <span class="session-label">会话ID:</span>
+                    <span class="session-value" id="session-id">{{ session_id }}</span>
+                    <button class="btn-copy" data-clipboard-target="#session-id">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="system-info">
+                    <span id="system-status">系统就绪</span>
+                    <span class="separator">•</span>
+                    <span id="message-count">0 条消息</span>
+                    <span class="separator">•</span>
+                    <span id="last-update">刚刚</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 设置模态框 -->
+    <div class="modal" id="config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> 系统设置</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="temperature">温度 (Temperature):</label>
+                    <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                    <span id="temperature-value">0.7</span>
+                    <p class="form-help">值越高，回答越随机有创意；值越低，回答越确定保守。</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="max-tokens">最大生成长度:</label>
+                    <input type="range" id="max-tokens" min="100" max="4000" step="100" value="2000">
+                    <span id="max-tokens-value">2000 tokens</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>启用模型:</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="enable-deepseek" checked>
+                            DeepSeek
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enable-minimax" checked>
+                            MiniMax
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enable-qwen" checked>
+                            千问
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button id="save-config" class="btn btn-primary">
+                        <i class="fas fa-save"></i> 保存设置
+                    </button>
+                    <button id="reset-config" class="btn btn-outline">
+                        <i class="fas fa-undo"></i> 恢复默认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>正在处理中，请稍候...</p>
+            <div class="loading-models">
+                <div class="loading-model">
+                    <i class="fas fa-brain"></i>
+                    <span>DeepSeek</span>
+                </div>
+                <div class="loading-model">
+                    <i class="fas fa-microchip"></i>
+                    <span>MiniMax</span>
+                </div>
+                <div class="loading-model">
+                    <i class="fas fa-cloud"></i>
+                    <span>千问</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
