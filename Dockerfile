@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
@@ -20,18 +21,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 创建必要的目录
-RUN mkdir -p static/css static/js templates/chatbot models
+RUN mkdir -p logs
 
 # 设置环境变量
 ENV PORT=5000
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src
 
 # 暴露端口
 EXPOSE 5000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+    CMD curl -f http://localhost:5000/health || exit 1
 
 # 启动命令
-CMD ["python", "chatbot_app.py"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
