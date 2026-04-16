@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Web Demo 一键部署脚本
+# Hermes 智能问答客服系统一键部署脚本
 # 适用于阿里云服务器 Docker 部署
 
 set -e  # 遇到错误立即退出
 
-echo "🚀 开始部署 Web Demo 应用..."
+echo "🚀 开始部署 Hermes 智能问答客服系统..."
 
 # 颜色定义
 RED='\033[0;31m'
@@ -67,10 +67,24 @@ check_port() {
     return 0
 }
 
+# 检查环境变量文件
+check_env_file() {
+    if [ ! -f ".env" ]; then
+        print_warning "未找到 .env 文件，使用 .env.example 作为模板"
+        if [ -f ".env.example" ]; then
+            cp .env.example .env
+            print_info "已创建 .env 文件，请编辑该文件配置 API 密钥"
+        else
+            print_error "找不到 .env.example 文件"
+            exit 1
+        fi
+    fi
+}
+
 # 构建 Docker 镜像
 build_image() {
     print_info "开始构建 Docker 镜像..."
-    docker build -t web-demo:latest .
+    docker build -t hermes-chatbot:latest .
     
     if [ $? -eq 0 ]; then
         print_info "Docker 镜像构建成功"
@@ -103,15 +117,16 @@ start_with_docker() {
     print_info "使用 Docker 直接运行..."
     
     # 停止并移除旧容器
-    docker stop web-demo 2>/dev/null || true
-    docker rm web-demo 2>/dev/null || true
+    docker stop hermes-chatbot 2>/dev/null || true
+    docker rm hermes-chatbot 2>/dev/null || true
     
     # 运行新容器
     docker run -d \
-        --name web-demo \
+        --name hermes-chatbot \
         -p 5000:5000 \
         --restart unless-stopped \
-        web-demo:latest
+        --env-file .env \
+        hermes-chatbot:latest
     
     if [ $? -eq 0 ]; then
         print_info "容器启动成功"
@@ -129,7 +144,7 @@ check_service_status() {
     sleep 5
     
     # 检查容器状态
-    if docker ps | grep -q "web-demo"; then
+    if docker ps | grep -q "hermes-chatbot"; then
         print_info "容器运行正常"
     else
         print_error "容器未运行"
@@ -137,7 +152,7 @@ check_service_status() {
     fi
     
     # 检查应用健康状态
-    if curl -s http://localhost:5000/api/health | grep -q "healthy"; then
+    if curl -s http://localhost:5000/api/v1/chat/health | grep -q "healthy"; then
         print_info "应用健康检查通过"
     else
         print_warning "应用健康检查失败，但容器仍在运行"
@@ -161,10 +176,16 @@ show_access_info() {
         echo "   公网: 无法获取公网 IP，请手动检查"
     fi
     echo ""
+    echo "🤖 系统功能:"
+    echo "   • 多模型智能问答 (DeepSeek, MiniMax, Qwen)"
+    echo "   • 实时对话界面"
+    echo "   • 会话历史管理"
+    echo "   • 完整的 RESTful API"
+    echo ""
     echo "🔧 API 接口:"
-    echo "   健康检查: http://localhost:5000/api/health"
-    echo "   系统信息: http://localhost:5000/api/info"
-    echo "   回显测试: http://localhost:5000/api/echo/hello"
+    echo "   健康检查: http://localhost:5000/api/v1/chat/health"
+    echo "   可用模型: http://localhost:5000/api/v1/chat/models"
+    echo "   聊天接口: http://localhost:5000/api/v1/chat/chat"
     echo ""
     echo "📊 管理命令:"
     echo "   查看日志: docker-compose logs -f"
@@ -175,6 +196,7 @@ show_access_info() {
     echo "   1. 确保阿里云安全组已开放 5000 端口"
     echo "   2. 生产环境建议配置 Nginx 反向代理和 SSL"
     echo "   3. 定期查看应用日志"
+    echo "   4. 在 .env 文件中配置至少一个 AI 模型的 API 密钥"
     echo "=========================================="
 }
 
@@ -196,17 +218,40 @@ show_security_group_info() {
     echo ""
 }
 
+# 检查 AI 模型 API 密钥配置
+check_api_keys() {
+    print_info "检查 API 密钥配置..."
+    
+    if [ -f ".env" ]; then
+        # 检查是否有至少一个模型配置了 API 密钥
+        if grep -q "DEEPSEEK_API_KEY=" .env || \
+           grep -q "MINIMAX_API_KEY=" .env || \
+           grep -q "QWEN_API_KEY=" .env; then
+            print_info "检测到 API 密钥配置"
+        else
+            print_warning "未检测到任何 AI 模型的 API 密钥"
+            print_warning "请编辑 .env 文件，配置至少一个模型的 API 密钥"
+        fi
+    fi
+}
+
 # 主函数
 main() {
     echo ""
     echo "=========================================="
-    echo "    Web Demo 应用部署脚本"
+    echo "    Hermes 智能问答客服系统部署脚本"
     echo "=========================================="
     echo ""
     
     # 检查前置条件
     check_docker
     check_docker_compose
+    
+    # 检查环境变量文件
+    check_env_file
+    
+    # 检查 API 密钥配置
+    check_api_keys
     
     # 检查端口
     if ! check_port 5000; then
@@ -224,7 +269,7 @@ main() {
     # 选择启动方式
     echo ""
     echo "请选择启动方式:"
-    echo "1) 使用 Docker Compose (推荐)"
+    echo "1) 使用 Docker Compose (推荐，包含 Redis)"
     echo "2) 使用 Docker 直接运行"
     read -p "请输入选择 (1/2): " choice
     
