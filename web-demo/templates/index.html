@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Web Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .info-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .info-item {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            min-width: 120px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-family: monospace;
+            padding: 5px 10px;
+            background: #f1f3f4;
+            border-radius: 5px;
+            flex: 1;
+        }
+        
+        .api-section {
+            margin-top: 30px;
+        }
+        
+        .api-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .api-endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .api-endpoint {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .api-endpoint:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .api-method {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .api-path {
+            font-family: monospace;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .api-desc {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .info-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Hermes Web Demo</h1>
+            <p>由 Hermes Agent 自动创建和部署的 Web 应用</p>
+        </div>
+        
+        <div class="info-card">
+            <h2>📊 系统信息</h2>
+            <div class="info-item">
+                <span class="info-label">主机名:</span>
+                <span class="info-value">{{ hostname }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">IP 地址:</span>
+                <span class="info-value">{{ ip_address }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">状态:</span>
+                <span class="info-value">
+                    运行正常
+                    <span class="badge">在线</span>
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">消息:</span>
+                <span class="info-value">{{ message }}</span>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h2>🔧 API 接口</h2>
+            <div class="api-endpoints">
+                <div class="api-endpoint">
+                    <span class="api-method">GET</span>
+                    <div class="api-path">/api/health</div>
+                    <div class="api-desc">健康检查接口，返回服务状态</div>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method">GET</span>
+                    <div class="api-path">/api/info</div>
+                    <div class="api-desc">系统信息接口，返回详细系统数据</div>
+                </div>
+                
+                <div class="api-endpoint">
+                    <span class="api-method">GET</span>
+                    <div class="api-path">/api/echo/&lt;message&gt;</div>
+                    <div class="api-desc">回显接口，处理并返回消息</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 Hermes Agent | 自动部署于阿里云服务器</p>
+            <p>这是一个演示应用，展示 AI 助手的自动化部署能力</p>
+        </div>
+    </div>
+    
+    <script>
+        // 简单的交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const endpoints = document.querySelectorAll('.api-endpoint');
+            
+            endpoints.forEach(endpoint => {
+                endpoint.addEventListener('click', function() {
+                    const path = this.querySelector('.api-path').textContent;
+                    const fullUrl = window.location.origin + path;
+                    
+                    // 复制到剪贴板
+                    navigator.clipboard.writeText(fullUrl).then(() => {
+                        const originalText = this.querySelector('.api-desc').textContent;
+                        this.querySelector('.api-desc').textContent = 'URL 已复制到剪贴板！';
+                        
+                        setTimeout(() => {
+                            this.querySelector('.api-desc').textContent = originalText;
+                        }, 2000);
+                    });
+                });
+            });
+            
+            // 自动获取健康状态
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('健康状态:', data);
+                })
+                .catch(error => {
+                    console.log('健康检查失败:', error);
+                });
+        });
+    </script>
+</body>
+</html>
